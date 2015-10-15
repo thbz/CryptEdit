@@ -1,0 +1,1 @@
+..\..\..\java.bat -cp ..\..\.. org.thbz.CryptEdit.CryptEdit
