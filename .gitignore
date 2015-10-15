@@ -17,6 +17,12 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# Java class files
+*.class
+
+# Notepad++ temporary files
+*~
+
 # =========================
 # Operating System Files
 # =========================
