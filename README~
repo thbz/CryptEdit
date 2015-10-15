@@ -1,5 +1,0 @@
-CryptEdit is a very small text editor with encrypting/decrypting capabilities.
-
-It can read and write password-encrypted files in the OpenPGP (RFC
-4880) format. Therefore these files can be opened and written by other
-OpenPGP-compatible tools on all platforms.
