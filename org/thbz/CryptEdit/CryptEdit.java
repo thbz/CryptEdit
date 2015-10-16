@@ -357,8 +357,8 @@ class CryptEdit extends JFrame {
 			(new FileInputStream(fileName));
 		    InputStream in_decrypted = PBE.decrypt(in,
 							   password.toCharArray());
-		    in.close();
 		    if(in_decrypted == null) {
+			in.close();
 			in_decrypted.close();
 			JOptionPane.showMessageDialog
 			    (this,
@@ -369,6 +369,7 @@ class CryptEdit extends JFrame {
 			area.read(new BufferedReader
 				  (new InputStreamReader(in_decrypted)),
 				  null);
+			in.close();
 			in_decrypted.close();
 			status.setText("Opened password-protected file "
 				       + fileName);
@@ -389,7 +390,7 @@ class CryptEdit extends JFrame {
 	    Toolkit.getDefaultToolkit().beep();
 	    JOptionPane.showMessageDialog(this,
 					  "Editor can't find the file called "
-					  + fileName);
+					  + fileName + " : " + e.toString());
 	}
     }
 	
