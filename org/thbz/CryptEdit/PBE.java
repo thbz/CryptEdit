@@ -174,18 +174,17 @@ public class PBE
 	    
 	    PGPLiteralData ld = (PGPLiteralData)o;
 	    InputStream unc = ld.getInputStream();
-
 	    
 	    if (pbe.isIntegrityProtected()) {
 		if (!pbe.verify()) {
 		    System.err.println("message failed integrity check");
 		}
 		else {
-		    System.err.println("message integrity check passed");
+		    // System.err.println("message integrity check passed");
 		}
 	    }
 	    else {
-		System.err.println("no message integrity check");
+		// System.err.println("no message integrity check");
 	    }
 	    
 	    return unc;

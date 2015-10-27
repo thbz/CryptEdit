@@ -14,18 +14,21 @@ import java.awt.event.KeyListener;
 import java.awt.event.InputEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.nio.charset.Charset;
 import java.io.BufferedReader;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.FileInputStream;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 import java.security.NoSuchProviderException;
 import java.security.Security;
 import java.util.Date;
@@ -346,7 +349,11 @@ class CryptEdit extends JFrame {
     private void readInFile(String fileName, String password) {
 	try {
 	    if(password == null) {
-		FileReader r = new FileReader(fileName);
+		// FileReader r = new FileReader(fileName);
+		Reader r = new InputStreamReader
+		    (new FileInputStream(fileName),
+		     Charset.forName("UTF-8"));
+		
 		area.read(r,null);
 		r.close();
 		status.setText("Opened file " + fileName);
@@ -397,7 +404,12 @@ class CryptEdit extends JFrame {
     private void saveFile() {
 	try {
 	    if(currentFile.password == null) {
-		FileWriter w = new FileWriter(currentFile.name);
+		// FileWriter ne permet pas de choisir l'encodage
+		// FileWriter w = new FileWriter(currentFile.name);
+		Writer w = new OutputStreamWriter
+		    (new FileOutputStream(currentFile.name),
+		     Charset.forName("UTF-8"));
+						 
 		area.write(w);
 		w.close();
 		status.setText("The file has been saved as "
