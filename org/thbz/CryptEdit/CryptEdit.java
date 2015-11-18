@@ -38,9 +38,12 @@ import javax.swing.ActionMap;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
 import javax.swing.JTextArea;
@@ -185,7 +188,7 @@ class CryptEdit extends JFrame {
     
     Action New = new AbstractAction("New") {
 	    public void actionPerformed(ActionEvent e) {
-		saveCurrent();
+		saveCurrentIfChanged();
 		area.setText(null);
 		setTitle(newFileTitle);
 		SaveAs.setEnabled(true);
@@ -196,7 +199,7 @@ class CryptEdit extends JFrame {
     Action Open =
 	new AbstractAction("Open") {
 	    public void actionPerformed(ActionEvent e) {
-		saveCurrent();
+		saveCurrentIfChanged();
 		if(dialog.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 		    readInFile(dialog.getSelectedFile().getAbsolutePath());
 		}
@@ -208,17 +211,22 @@ class CryptEdit extends JFrame {
     Action OpenWithPassword =
 	new AbstractAction("Open with password...") {
 	    public void actionPerformed(ActionEvent e) {
-		saveCurrent();
+		saveCurrentIfChanged();
 		if(dialog.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-		    File selectedFile = dialog.getSelectedFile();
-		    String password = (String)JOptionPane.showInputDialog
-			(CryptEdit.this,
-			 "Enter the password for " + selectedFile.getName());
-		    if(password != null && password.length() > 0)
-			readInFile(selectedFile.getAbsolutePath(), password);
-		    else {
-			status.setText("Action cancelled");
-		    }
+			File selectedFile = dialog.getSelectedFile();
+
+			String password = askPassword("Password", "Enter the password for " 
+				+ selectedFile.getName());
+			/*
+			String password = (String)JOptionPane.showInputDialog
+				(CryptEdit.this,
+				"Enter the password for " + selectedFile.getName());
+				*/
+			if(password != null && password.length() > 0)
+				readInFile(selectedFile.getAbsolutePath(), password);
+			else {
+				status.setText("Action cancelled");
+			}
 		}
 		SaveAs.setEnabled(true);
 		SetPassword.setEnabled(true);
@@ -262,8 +270,25 @@ class CryptEdit extends JFrame {
     Action Copy = m.get(DefaultEditorKit.copyAction);
     Action Paste = m.get(DefaultEditorKit.pasteAction);
 
+    static String askPassword(String title, String caption) {
+	JPanel panel = new JPanel();
+	JLabel label = new JLabel(caption);
+	JPasswordField pass = new JPasswordField(15);
+	panel.add(label);
+	panel.add(pass);
+	String[] options = new String[]{"OK", "Cancel"};
+	int option = JOptionPane.showOptionDialog(null, panel, title,
+		JOptionPane.NO_OPTION, JOptionPane.PLAIN_MESSAGE,
+		null, options, options[0]);
+		
+	if(option == 0) // pressing OK button
+		return new String(pass.getPassword());
+	else
+		return null;
+    }
+    
     private void quit() {
-	saveCurrent();
+	saveCurrentIfChanged();
 	System.exit(0);
     }
     
@@ -274,7 +299,7 @@ class CryptEdit extends JFrame {
 	}
     }
 	
-    private void saveCurrent() {
+    private void saveCurrentIfChanged() {
 	if(currentFile.changed) {
 	    if(JOptionPane.showConfirmDialog(this, 
 					     "Would you like to save "
@@ -288,31 +313,34 @@ class CryptEdit extends JFrame {
 
     private void setPassword() {
 	boolean hasCurrentPassword = (currentFile.password != null);
-	String s1 = (String)JOptionPane.showInputDialog
+	String s1 = askPassword("Password", 
+		"Enter a" + (hasCurrentPassword ? " new " : "") + " password");
+/*	String s1 = (String)JOptionPane.showInputDialog
 	    (this,
-	     "Enter a" + (hasCurrentPassword ? " new " : "") + " password");
+	     "Enter a" + (hasCurrentPassword ? " new " : "") + " password"); */
 	if(s1 == null || s1.length() == 0) {
 	    JOptionPane.showMessageDialog
 		(this,
-		 "The password has not been changed");
+		 "The password has not been " + (hasCurrentPassword ? "changed" : "set"));
 	}
 	else {
-	    String s2 = (String)JOptionPane.showInputDialog
+		String s2 = askPassword("Password", "Enter the" + (hasCurrentPassword ? " new " : "")
+		 + " password a second time");
+/*	    String s2 = (String)JOptionPane.showInputDialog
 		(this,
 		 "Enter the" + (hasCurrentPassword ? " new " : "")
-		 + " password a second time");
+		 + " password a second time"); */
 	    if(s2 == null || s2.length() == 0 || s2.equals(s1) == false) {
 		JOptionPane.showMessageDialog
 		    (this,
 		     "You did not enter the same password. "
-		     + "The password has not been changed");
-	    }		
+			+"The password has not been " + (hasCurrentPassword ? "changed" : "set"));
+	    }
 	    else {
 		currentFile.password = s2;
 		if(hasCurrentPassword) {
 		    JOptionPane.showMessageDialog
-			(this,
-			 "The password has been changed.");
+			(this, "The password has been changed.");
 		}
 		else {
 		    JOptionPane.showMessageDialog
@@ -324,9 +352,10 @@ class CryptEdit extends JFrame {
     }
     
     private void changePassword() {
-	String old = (String)JOptionPane.showInputDialog
+	String old = askPassword("Password", "First enter the current password");
+/*	String old = (String)JOptionPane.showInputDialog
 	    (this,
-	     "First enter the current password");
+	     "First enter the current password"); */
 	if(old == null || old.length() == 0) {
 	    JOptionPane.showMessageDialog
 		(this,
@@ -354,7 +383,7 @@ class CryptEdit extends JFrame {
 		    (new FileInputStream(fileName),
 		     Charset.forName("UTF-8"));
 		
-		area.read(r,null);
+		area.read(r, null);
 		r.close();
 		status.setText("Opened file " + fileName);
 	    }
@@ -373,9 +402,9 @@ class CryptEdit extends JFrame {
 			status.setText("Error while reading " + fileName);
 		    }
 		    else {
-			area.read(new BufferedReader
-				  (new InputStreamReader(in_decrypted)),
-				  null);
+			Reader r = new BufferedReader
+				(new InputStreamReader(in_decrypted, Charset.forName("UTF-8")));
+			area.read(r, null);
 			in.close();
 			in_decrypted.close();
 			status.setText("Opened password-protected file "
