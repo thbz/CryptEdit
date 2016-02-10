@@ -86,7 +86,13 @@ class CryptEdit extends JFrame {
 					    ActionEvent.CTRL_MASK));
     }
     
-    public CryptEdit() {
+    public CryptEdit(String[] arg) {
+	String fileToOpen;
+	if(arg.length > 0)
+		fileToOpen = arg[0];
+	else
+		fileToOpen = null;
+	    
 	PBE.init();
 
 	setAccelerator(KeyEvent.VK_C, Copy);
@@ -175,6 +181,19 @@ class CryptEdit extends JFrame {
 		}
 	    }); 	
 	setVisible(true);
+	
+	if(fileToOpen != null) {
+		File selectedFile = new File(fileToOpen);
+		String password = (String)JOptionPane.showInputDialog
+			(CryptEdit.this,
+			 "If " + selectedFile.getName() + " is crypted, enter the password here:");
+		if(password != null && password.length() > 0)
+			readInFile(selectedFile.getAbsolutePath(), password);
+		else
+			readInFile(selectedFile.getAbsolutePath());
+		SaveAs.setEnabled(true);
+		SetPassword.setEnabled(true);
+	}
     }
 	
     private KeyListener k1 = new KeyAdapter() {
@@ -469,6 +488,6 @@ class CryptEdit extends JFrame {
     }
 	
     public  static void main(String[] arg) {
-	new CryptEdit();
+	new CryptEdit(arg);
     }
 }
