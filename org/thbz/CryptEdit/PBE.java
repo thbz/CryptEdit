@@ -11,6 +11,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.security.Security;
@@ -55,12 +56,16 @@ public class PBE
         throws IOException
     {
         PGPLiteralDataGenerator lData = new PGPLiteralDataGenerator();
+	byte[] bytes = data.getBytes(Charset.forName("UTF-8"));
         OutputStream pOut = lData.open(out,
 				       literalDataType,
 				       fileName,
-				       data.length(),
+				       bytes.length,
 				       modificationTime);
-	pOut.write(data.getBytes());
+	// ThB, 20160805 : getBytes() utilise l'encodage par défaut de la plateforme : 
+	// pour plus de portabilité, il paraît préférable d'imposer l'encodage
+//	pOut.write(data.getBytes());
+	pOut.write(bytes);
     }
     
     static byte[] compressString(String data,
