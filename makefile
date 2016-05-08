@@ -4,4 +4,4 @@ clean:
 	rm org/thbz/CryptEdit/*.class
 
 %.class: %.java
-	javac -Xlint:deprecation -classpath ".;jar/bcpg-jdk15on-153.jar;jar/bcprov-jdk15on-153.jar"  $<
+	javac -classpath ".;jar/bcpg-jdk15on-153.jar;jar/bcprov-jdk15on-153.jar"  $<
