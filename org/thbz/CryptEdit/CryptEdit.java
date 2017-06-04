@@ -1,6 +1,6 @@
 package org.thbz.CryptEdit;
 
-/* 
+/*
 Source d'inspiration : http:://forum.codecall.net/topic/49721-simple-text-editor/
 */
 
@@ -184,9 +184,7 @@ class CryptEdit extends JFrame {
 	
 	if(fileToOpen != null) {
 		File selectedFile = new File(fileToOpen);
-		String password = (String)JOptionPane.showInputDialog
-			(CryptEdit.this,
-			 "If " + selectedFile.getName() + " is crypted, enter the password here:");
+		String password = askPassword("Password", "If " + selectedFile.getName() + " is crypted, enter the password here:");
 		if(password != null && password.length() > 0)
 			readInFile(selectedFile.getAbsolutePath(), password);
 		else
@@ -236,11 +234,6 @@ class CryptEdit extends JFrame {
 
 			String password = askPassword("Password", "Enter the password for " 
 				+ selectedFile.getName());
-			/*
-			String password = (String)JOptionPane.showInputDialog
-				(CryptEdit.this,
-				"Enter the password for " + selectedFile.getName());
-				*/
 			if(password != null && password.length() > 0)
 				readInFile(selectedFile.getAbsolutePath(), password);
 			else {
@@ -334,9 +327,6 @@ class CryptEdit extends JFrame {
 	boolean hasCurrentPassword = (currentFile.password != null);
 	String s1 = askPassword("Password", 
 		"Enter a" + (hasCurrentPassword ? " new " : "") + " password");
-/*	String s1 = (String)JOptionPane.showInputDialog
-	    (this,
-	     "Enter a" + (hasCurrentPassword ? " new " : "") + " password"); */
 	if(s1 == null || s1.length() == 0) {
 	    JOptionPane.showMessageDialog
 		(this,
@@ -345,10 +335,6 @@ class CryptEdit extends JFrame {
 	else {
 		String s2 = askPassword("Password", "Enter the" + (hasCurrentPassword ? " new " : "")
 		 + " password a second time");
-/*	    String s2 = (String)JOptionPane.showInputDialog
-		(this,
-		 "Enter the" + (hasCurrentPassword ? " new " : "")
-		 + " password a second time"); */
 	    if(s2 == null || s2.length() == 0 || s2.equals(s1) == false) {
 		JOptionPane.showMessageDialog
 		    (this,
@@ -372,9 +358,6 @@ class CryptEdit extends JFrame {
     
     private void changePassword() {
 	String old = askPassword("Password", "First enter the current password");
-/*	String old = (String)JOptionPane.showInputDialog
-	    (this,
-	     "First enter the current password"); */
 	if(old == null || old.length() == 0) {
 	    JOptionPane.showMessageDialog
 		(this,
@@ -397,7 +380,6 @@ class CryptEdit extends JFrame {
     private void readInFile(String fileName, String password) {
 	try {
 	    if(password == null) {
-		// FileReader r = new FileReader(fileName);
 		Reader r = new InputStreamReader
 		    (new FileInputStream(fileName),
 		     Charset.forName("UTF-8"));
@@ -452,8 +434,6 @@ class CryptEdit extends JFrame {
     private void saveFile() {
 	try {
 	    if(currentFile.password == null) {
-		// FileWriter ne permet pas de choisir l'encodage
-		// FileWriter w = new FileWriter(currentFile.name);
 		Writer w = new OutputStreamWriter
 		    (new FileOutputStream(currentFile.name),
 		     Charset.forName("UTF-8"));
