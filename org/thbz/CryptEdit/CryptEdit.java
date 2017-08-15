@@ -4,6 +4,7 @@ package org.thbz.CryptEdit;
 Source d'inspiration : http:://forum.codecall.net/topic/49721-simple-text-editor/
 */
 
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.BorderLayout;
@@ -35,10 +36,13 @@ import java.util.Date;
 import javax.swing.Action;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
+import javax.swing.Box;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
@@ -57,25 +61,30 @@ class CryptEdit extends JFrame {
     private JTextField status = new JTextField(80);
     private JFileChooser dialog =
 	new JFileChooser(System.getProperty("user.dir"));
-
+	
+	Integer[] textsizes =
+		{9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30 };
+	int defaultTextSize = 22; // Must be an element of textSizes
+	private JComboBox<Integer> textSizeList = new JComboBox(textsizes);
+	
     final static private class FileInfo {
-	String name;
-	String password;
-	boolean changed;
+		String name;
+		String password;
+		boolean changed;
 
-	private FileInfo(String name, String password, boolean changed) {
-	    this.name = name;
-	    this.password = password;
-	    this.changed = changed;
-	}
+		private FileInfo(String name, String password, boolean changed) {
+			this.name = name;
+			this.password = password;
+			this.changed = changed;
+		}
 
-	static FileInfo uninitialized() {
-	    return new FileInfo(newFileTitle, null, false);
-	}
+		static FileInfo uninitialized() {
+			return new FileInfo(newFileTitle, null, false);
+		}
 
-	static FileInfo newFromFile(String fileName, String password) {
-	    return new FileInfo(fileName, password, false);
-	}
+		static FileInfo newFromFile(String fileName, String password) {
+			return new FileInfo(fileName, password, false);
+		}
     };
     
     FileInfo currentFile = FileInfo.uninitialized();
@@ -87,113 +96,134 @@ class CryptEdit extends JFrame {
     }
     
     public CryptEdit(String[] arg) {
-	String fileToOpen;
-	if(arg.length > 0)
-		fileToOpen = arg[0];
-	else
-		fileToOpen = null;
-	    
-	PBE.init();
-
-	setAccelerator(KeyEvent.VK_C, Copy);
-	setAccelerator(KeyEvent.VK_N, New);
-	setAccelerator(KeyEvent.VK_O, Open);
-	setAccelerator(KeyEvent.VK_P, SetPassword);
-	setAccelerator(KeyEvent.VK_Q, Quit);
-	setAccelerator(KeyEvent.VK_S, Save);
-	setAccelerator(KeyEvent.VK_V, Paste);
-	setAccelerator(KeyEvent.VK_W, OpenWithPassword);
-	setAccelerator(KeyEvent.VK_X, Cut);
-
-	area.setFont(new Font("Monospaced", Font.PLAIN, 12));
-	JScrollPane scroll =
-	    new JScrollPane(area, 
-			    JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-			    JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-	add(scroll, BorderLayout.CENTER);
-		
-	JMenuBar JMB = new JMenuBar();
-	setJMenuBar(JMB);
-
-	JMenu fileMenu = new JMenu("File");
-	fileMenu.setMnemonic(KeyEvent.VK_F);
-	JMenu editMenu = new JMenu("Edit");
-	editMenu.setMnemonic(KeyEvent.VK_E);
-	JMB.add(fileMenu); 
-	JMB.add(editMenu);
-		
-	fileMenu.add(New);
-	fileMenu.add(Open);
-	fileMenu.add(OpenWithPassword);
-	fileMenu.add(Save);
-	fileMenu.add(SaveAs);
-	fileMenu.add(SetPassword);
-	fileMenu.add(Quit);
-	fileMenu.addSeparator();
-		
-	for(int i = 0; i < 4; i++)
-	    fileMenu.getItem(i).setIcon(null);
-
-	editMenu.add(Cut);
-	editMenu.add(Copy);
-	editMenu.add(Paste);
-
-	editMenu.getItem(0).setText("Cut out");
-	editMenu.getItem(1).setText("Copy");
-	editMenu.getItem(2).setText("Paste");
-		
-	JToolBar tool = new JToolBar();
-	add(tool,BorderLayout.NORTH);
-	tool.add(New);
-	tool.add(Open);
-	tool.add(OpenWithPassword);
-	tool.add(Save);
-	tool.add(SetPassword);
-	tool.addSeparator();
-		
-	JButton cut = tool.add(Cut), 
-	    cop = tool.add(Copy), 
-	    pas = tool.add(Paste);
-		
-	cut.setText(null); 
-	cut.setText("Cut");
-	cop.setText(null); 
-	cop.setLabel("Copy");
-	pas.setText(null); 
-	pas.setText("Paste");
-
-	add(status, BorderLayout.SOUTH);
-	
-	Save.setEnabled(false);
-	SaveAs.setEnabled(false);
-	SetPassword.setEnabled(false);
-		
-	setDefaultCloseOperation(EXIT_ON_CLOSE);
-	pack();
-	area.addKeyListener(k1);
-	setTitle(currentFile.name);
-
-	setLocationRelativeTo(null);
-	
-	addWindowListener(new WindowAdapter() {
-		public void windowOpened( WindowEvent e ){
-		    area.requestFocus();
-		}
-	    }); 	
-	setVisible(true);
-	
-	if(fileToOpen != null) {
-		File selectedFile = new File(fileToOpen);
-		String password = askPassword("Password", "If " + selectedFile.getName() + " is crypted, enter the password here:");
-		if(password != null && password.length() > 0)
-			readInFile(selectedFile.getAbsolutePath(), password);
+		String fileToOpen;
+		if(arg.length > 0)
+			fileToOpen = arg[0];
 		else
-			readInFile(selectedFile.getAbsolutePath());
-		SaveAs.setEnabled(true);
-		SetPassword.setEnabled(true);
-	}
-    }
+			fileToOpen = null;
+			
+		PBE.init();
+
+		// Raccourcis clavier
+		setAccelerator(KeyEvent.VK_C, Copy);
+		setAccelerator(KeyEvent.VK_N, New);
+		setAccelerator(KeyEvent.VK_O, Open);
+		setAccelerator(KeyEvent.VK_P, SetPassword);
+		setAccelerator(KeyEvent.VK_Q, Quit);
+		setAccelerator(KeyEvent.VK_S, Save);
+		setAccelerator(KeyEvent.VK_V, Paste);
+		setAccelerator(KeyEvent.VK_W, OpenWithPassword);
+		setAccelerator(KeyEvent.VK_X, Cut);
+
+		setFont(defaultTextSize);
+		// area.setFont(new Font("Monospaced", Font.PLAIN, 12));
+		
+		JScrollPane scroll =
+			new JScrollPane(area, 
+					JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+					JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		add(scroll, BorderLayout.CENTER);
+			
+		// Barre de menus
+		JMenuBar JMB = new JMenuBar();
+		setJMenuBar(JMB);
+
+		JMenu fileMenu = new JMenu("File");
+		fileMenu.setMnemonic(KeyEvent.VK_F);
+		JMenu editMenu = new JMenu("Edit");
+		editMenu.setMnemonic(KeyEvent.VK_E);
+		JMB.add(fileMenu); 
+		JMB.add(editMenu);
+			
+		fileMenu.add(New);
+		fileMenu.add(Open);
+		fileMenu.add(OpenWithPassword);
+		fileMenu.add(Save);
+		fileMenu.add(SaveAs);
+		fileMenu.add(SetPassword);
+		fileMenu.add(Quit);
+		fileMenu.addSeparator();
+			
+		for(int i = 0; i < 4; i++)
+			fileMenu.getItem(i).setIcon(null);
+
+		editMenu.add(Cut);
+		editMenu.add(Copy);
+		editMenu.add(Paste);
+
+		editMenu.getItem(0).setText("Cut out");
+		editMenu.getItem(1).setText("Copy");
+		editMenu.getItem(2).setText("Paste");
+			
+		// Barre d'outils
+		JToolBar tool = new JToolBar();
+		add(tool, BorderLayout.NORTH);
+		tool.add(New);
+		tool.add(Open);
+		tool.add(OpenWithPassword);
+		tool.add(Save);
+		tool.add(SetPassword);
+		
+		tool.addSeparator();
+
+		JButton cut = tool.add(Cut), 
+			cop = tool.add(Copy), 
+			pas = tool.add(Paste);
+				
+		cut.setText(null); 
+		cut.setText("Cut");
+		cop.setText(null); 
+		cop.setLabel("Copy");
+		pas.setText(null); 
+		pas.setText("Paste");
+		
+		tool.addSeparator();
+
+		textSizeList.setSelectedItem(new Integer(defaultTextSize));
+		textSizeList.setAction(TextSize);
+		tool.add(new JLabel("Text size: "));
+		tool.add(textSizeList);
+
+		tool.add(Box.createHorizontalGlue());
+
+		// Barre d'état
+		add(status, BorderLayout.SOUTH);
+		
+		// Initialisation de l'interface
+		Save.setEnabled(false);
+		SaveAs.setEnabled(false);
+		SetPassword.setEnabled(false);
+			
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		pack();
+		area.addKeyListener(k1);
+		setTitle(currentFile.name);
+
+		setLocationRelativeTo(null);
+		
+		addWindowListener(new WindowAdapter() {
+			public void windowOpened( WindowEvent e ){
+				area.requestFocus();
+			}
+		}); 	
+		setVisible(true);
 	
+		// Ouverture d'un fichier le cas échéant
+		if(fileToOpen != null) {
+			File selectedFile = new File(fileToOpen);
+			String password = askPassword("Password", "If " + selectedFile.getName() + " is crypted, enter the password here:");
+			if(password != null && password.length() > 0)
+				readInFile(selectedFile.getAbsolutePath(), password);
+			else
+				readInFile(selectedFile.getAbsolutePath());
+			SaveAs.setEnabled(true);
+			SetPassword.setEnabled(true);
+		}
+    }
+    
+	private void setFont(int fontSize) {
+		area.setFont(new Font("Monospaced", Font.PLAIN, fontSize));
+	}
     private KeyListener k1 = new KeyAdapter() {
 	    public void keyPressed(KeyEvent e) {
 		currentFile.changed = true;
@@ -205,24 +235,24 @@ class CryptEdit extends JFrame {
     
     Action New = new AbstractAction("New") {
 	    public void actionPerformed(ActionEvent e) {
-		saveCurrentIfChanged();
-		area.setText(null);
-		setTitle(newFileTitle);
-		SaveAs.setEnabled(true);
-		SetPassword.setEnabled(true);
+			saveCurrentIfChanged();
+			area.setText(null);
+			setTitle(newFileTitle);
+			SaveAs.setEnabled(true);
+			SetPassword.setEnabled(true);
 	    }
 	};
     
     Action Open =
 	new AbstractAction("Open") {
 	    public void actionPerformed(ActionEvent e) {
-		saveCurrentIfChanged();
-		if(dialog.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-		    readInFile(dialog.getSelectedFile().getAbsolutePath());
+			saveCurrentIfChanged();
+			if(dialog.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+				readInFile(dialog.getSelectedFile().getAbsolutePath());
+			}
+			SaveAs.setEnabled(true);
+			SetPassword.setEnabled(true);
 		}
-		SaveAs.setEnabled(true);
-		SetPassword.setEnabled(true);
-	    }
 	};
     
     Action OpenWithPassword =
@@ -277,10 +307,17 @@ class CryptEdit extends JFrame {
 	    }
 	};
 	
+	Action TextSize = new AbstractAction("Text size") {
+		public void actionPerformed(ActionEvent e) {
+			Integer choix = (Integer)textSizeList.getSelectedItem();
+			setFont(choix.intValue());
+		}
+	};
+	
     ActionMap m = area.getActionMap();
     Action Cut = m.get(DefaultEditorKit.cutAction);
     Action Copy = m.get(DefaultEditorKit.copyAction);
-    Action Paste = m.get(DefaultEditorKit.pasteAction);
+    Action Paste = m.get(DefaultEditorKit.pasteAction);    
 
     static String askPassword(String title, String caption) {
 	JPanel panel = new JPanel();
