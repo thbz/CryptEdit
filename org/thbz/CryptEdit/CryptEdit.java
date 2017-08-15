@@ -67,6 +67,8 @@ class CryptEdit extends JFrame {
 	int defaultTextSize = 22; // Must be an element of textSizes
 	private JComboBox<Integer> textSizeList = new JComboBox(textsizes);
 	
+	private JTextField searchField = new JTextField("");
+	
     final static private class FileInfo {
 		String name;
 		String password;
@@ -86,9 +88,20 @@ class CryptEdit extends JFrame {
 			return new FileInfo(fileName, password, false);
 		}
     };
-    
     FileInfo currentFile = FileInfo.uninitialized();
 
+	final static private class Util {
+		CryptEdit cryptEdit;
+		private Util(CryptEdit _cryptEdit) {
+			cryptEdit = _cryptEdit;
+		}
+		
+		void alert(String msg) {
+			JOptionPane.showMessageDialog(cryptEdit, msg);
+		}
+	};
+	private Util util = new Util(this);
+	
     private void setAccelerator(int key, Action action) {
 	action.putValue(Action.ACCELERATOR_KEY,
 		     KeyStroke.getKeyStroke(key,
@@ -184,6 +197,12 @@ class CryptEdit extends JFrame {
 		tool.add(new JLabel("Text size: "));
 		tool.add(textSizeList);
 
+		tool.addSeparator();
+
+		tool.add(searchField);
+		searchField.setAction(Search);
+		tool.add(Search);
+		
 		tool.add(Box.createHorizontalGlue());
 
 		// Barre d'état
@@ -319,6 +338,25 @@ class CryptEdit extends JFrame {
     Action Copy = m.get(DefaultEditorKit.copyAction);
     Action Paste = m.get(DefaultEditorKit.pasteAction);    
 
+	// Text search (case insensitive)
+	Action Search = new AbstractAction("Search") {
+		public void actionPerformed(ActionEvent e) {
+			String searchStr = searchField.getText().toLowerCase();
+			String text = area.getText().toLowerCase();
+			int idx = text.indexOf(searchStr);
+			if(idx >= 0) {
+				// Ne fait pas ce que je veux, c'est à dire scroller et 
+				// surligner le texte
+				area.requestFocusInWindow();
+				area.setCaretPosition(idx);
+				area.select(idx, idx+searchStr.length());
+			}
+			else {
+				util.alert("'" + searchStr + "' could not be found in the text.");
+			}
+		}
+	};
+	
     static String askPassword(String title, String caption) {
 	JPanel panel = new JPanel();
 	JLabel label = new JLabel(caption);
@@ -342,22 +380,22 @@ class CryptEdit extends JFrame {
     }
     
     private void saveFileAs() {
-	if(dialog.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-	    currentFile.name = dialog.getSelectedFile().getAbsolutePath();
-	    saveFile();
-	}
+		if(dialog.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+			currentFile.name = dialog.getSelectedFile().getAbsolutePath();
+			saveFile();
+		}
     }
 	
     private void saveCurrentIfChanged() {
-	if(currentFile.changed) {
-	    if(JOptionPane.showConfirmDialog(this, 
-					     "Would you like to save "
-					     + currentFile.name +" ?",
-					     "Save",
-					     JOptionPane.YES_NO_OPTION)
-	       == JOptionPane.YES_OPTION)
-		saveFile();
-	}
+		if(currentFile.changed) {
+			if(JOptionPane.showConfirmDialog(this, 
+							 "Would you like to save "
+							 + currentFile.name +" ?",
+							 "Save",
+							 JOptionPane.YES_NO_OPTION)
+			   == JOptionPane.YES_OPTION)
+			saveFile();
+		}
     }
 
     private void setPassword() {
